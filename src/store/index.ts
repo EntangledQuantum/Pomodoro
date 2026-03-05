@@ -1,0 +1,153 @@
+import { create } from 'zustand';
+import { persist, createJSONStorage } from 'zustand/middleware';
+import { v4 as uuidv4 } from 'uuid';
+import type { AppState, TimerMode } from './types';
+
+const INITIAL_SETTINGS = {
+  workDuration: 25,
+  shortBreakDuration: 5,
+  longBreakDuration: 15,
+  mongoDbUrl: '',
+  mongoDbApiKey: '',
+  clusterName: 'Cluster0',
+  databaseName: 'zenfocus',
+};
+
+const getDurationForMode = (mode: TimerMode, settings: typeof INITIAL_SETTINGS) => {
+  switch (mode) {
+    case 'work': return settings.workDuration * 60;
+    case 'shortBreak': return settings.shortBreakDuration * 60;
+    case 'longBreak': return settings.longBreakDuration * 60;
+  }
+};
+
+export const useAppStore = create<AppState>()(
+  persist(
+    (set) => ({
+      projects: [],
+      tasks: [],
+      timer: {
+        mode: 'work',
+        timeLeft: INITIAL_SETTINGS.workDuration * 60,
+        isRunning: false,
+        activeTaskId: null,
+      },
+      settings: INITIAL_SETTINGS,
+
+      // -- Projects --
+      addProject: (project) => set((state) => ({
+        projects: [...state.projects, { ...project, id: uuidv4(), createdAt: Date.now() }]
+      })),
+      updateProject: (id, updates) => set((state) => ({
+        projects: state.projects.map(p => p.id === id ? { ...p, ...updates } : p)
+      })),
+      deleteProject: (id) => set((state) => ({
+        projects: state.projects.filter(p => p.id !== id),
+        tasks: state.tasks.map(t => t.projectId === id ? { ...t, projectId: null } : t)
+      })),
+
+      // -- Tasks --
+      addTask: (task) => set((state) => ({
+        tasks: [...state.tasks, { ...task, id: uuidv4(), createdAt: Date.now(), subtasks: task.subtasks || [], tags: task.tags || [], completed: false }]
+      })),
+      updateTask: (id, updates) => set((state) => ({
+        tasks: state.tasks.map(t => t.id === id ? { ...t, ...updates } : t)
+      })),
+      deleteTask: (id) => set((state) => ({
+        tasks: state.tasks.filter(t => t.id !== id),
+        timer: state.timer.activeTaskId === id ? { ...state.timer, activeTaskId: null } : state.timer
+      })),
+      toggleTaskCompletion: (id) => set((state) => ({
+        tasks: state.tasks.map(t => t.id === id ? { ...t, completed: !t.completed } : t)
+      })),
+      
+      // -- Subtasks --
+      addSubtask: (taskId, title) => set((state) => ({
+        tasks: state.tasks.map(t => t.id === taskId ? {
+          ...t,
+          subtasks: [...t.subtasks, { id: uuidv4(), title, completed: false }]
+        } : t)
+      })),
+      toggleSubtaskCompletion: (taskId, subtaskId) => set((state) => ({
+        tasks: state.tasks.map(t => t.id === taskId ? {
+          ...t,
+          subtasks: t.subtasks.map(st => st.id === subtaskId ? { ...st, completed: !st.completed } : st)
+        } : t)
+      })),
+      deleteSubtask: (taskId, subtaskId) => set((state) => ({
+        tasks: state.tasks.map(t => t.id === taskId ? {
+          ...t,
+          subtasks: t.subtasks.filter(st => st.id !== subtaskId)
+        } : t)
+      })),
+
+      // -- Timer --
+      setTimerMode: (mode) => set((state) => ({
+        timer: {
+          ...state.timer,
+          mode,
+          timeLeft: getDurationForMode(mode, state.settings),
+          isRunning: false
+        }
+      })),
+      startTimer: () => set((state) => ({
+        timer: { ...state.timer, isRunning: true }
+      })),
+      pauseTimer: () => set((state) => ({
+        timer: { ...state.timer, isRunning: false }
+      })),
+      resetTimer: () => set((state) => ({
+        timer: {
+          ...state.timer,
+          isRunning: false,
+          timeLeft: getDurationForMode(state.timer.mode, state.settings)
+        }
+      })),
+      tickTimer: () => set((state) => {
+        const newTimeLeft = Math.max(0, state.timer.timeLeft - 1);
+        if (newTimeLeft === 0) {
+          // Timer finished
+          return {
+            timer: { ...state.timer, isRunning: false, timeLeft: 0 }
+          };
+        }
+        return {
+          timer: { ...state.timer, timeLeft: newTimeLeft }
+        };
+      }),
+      setActiveTask: (taskId) => set((state) => ({
+        timer: { ...state.timer, activeTaskId: taskId }
+      })),
+
+      // -- Settings --
+      updateSettings: (newSettings) => set((state) => {
+        const updated = { ...state.settings, ...newSettings };
+        return {
+          settings: updated,
+          // Update current timer if it's not running
+          timer: !state.timer.isRunning ? {
+            ...state.timer,
+            timeLeft: getDurationForMode(state.timer.mode, updated)
+          } : state.timer
+        };
+      }),
+
+      // -- Sync --
+      replaceState: (newState) => set((state) => ({
+        projects: newState.projects || state.projects,
+        tasks: newState.tasks || state.tasks,
+        settings: newState.settings || state.settings,
+      })),
+    }),
+    {
+      name: 'zen-focus-storage',
+      storage: createJSONStorage(() => localStorage),
+      partialize: (state) => ({
+        projects: state.projects,
+        tasks: state.tasks,
+        settings: state.settings,
+        // Optional: you can choose not to persist timer state so it resets on app open
+      }),
+    }
+  )
+);

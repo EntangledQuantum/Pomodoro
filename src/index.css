@@ -1,0 +1,46 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply antialiased overflow-hidden m-0;
+  }
+}
+
+@layer components {
+  .glass-panel {
+    @apply bg-glass-darker backdrop-blur-xl border border-glass-light rounded-2xl shadow-[0_8px_32px_0_rgba(0,0,0,0.37)];
+  }
+
+  .glass-input {
+    @apply bg-glass-dark backdrop-blur-md border border-glass-light rounded-xl shadow-inner text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-white/50 transition-all duration-300;
+  }
+
+  .glass-button {
+    @apply bg-glass-light hover:bg-glass-medium backdrop-blur-md border border-glass-light rounded-xl shadow-[0_4px_16px_0_rgba(0,0,0,0.1)] text-white transition-all duration-300 active:scale-95 flex items-center justify-center;
+  }
+  
+  .glass-button-primary {
+    @apply bg-indigo-500/50 hover:bg-indigo-500/70 backdrop-blur-md border border-indigo-300/30 rounded-xl shadow-[0_4px_16px_0_rgba(0,0,0,0.2)] text-white transition-all duration-300 active:scale-95 flex items-center justify-center;
+  }
+}
+
+/* Scrollbar customization for a cleaner look */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.4);
+}
