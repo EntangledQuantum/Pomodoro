@@ -68,12 +68,22 @@ export const useAppStore = create<AppState>()(
           subtasks: [...t.subtasks, { id: uuidv4(), title, completed: false }]
         } : t)
       })),
-      toggleSubtaskCompletion: (taskId, subtaskId) => set((state) => ({
-        tasks: state.tasks.map(t => t.id === taskId ? {
-          ...t,
-          subtasks: t.subtasks.map(st => st.id === subtaskId ? { ...st, completed: !st.completed } : st)
-        } : t)
-      })),
+      toggleSubtaskCompletion: (taskId, subtaskId) => set((state) => {
+        const taskIndex = state.tasks.findIndex(t => t.id === taskId);
+        if (taskIndex === -1) return state;
+
+        const task = state.tasks[taskIndex];
+        const subtaskIndex = task.subtasks.findIndex(st => st.id === subtaskId);
+        if (subtaskIndex === -1) return state;
+
+        const newSubtasks = [...task.subtasks];
+        newSubtasks[subtaskIndex] = { ...newSubtasks[subtaskIndex], completed: !newSubtasks[subtaskIndex].completed };
+
+        const newTasks = [...state.tasks];
+        newTasks[taskIndex] = { ...task, subtasks: newSubtasks };
+
+        return { tasks: newTasks };
+      }),
       deleteSubtask: (taskId, subtaskId) => set((state) => ({
         tasks: state.tasks.map(t => t.id === taskId ? {
           ...t,
