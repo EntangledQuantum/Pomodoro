@@ -7,7 +7,6 @@ export const syncWithMongoDb = async () => {
   const { settings, projects, tasks } = useAppStore.getState();
   
   if (!settings.mongoDbUrl || !settings.mongoDbApiKey) {
-    console.log("MongoDB credentials not set. Skipping sync.");
     return;
   }
 
@@ -35,7 +34,6 @@ export const syncWithMongoDb = async () => {
         'api-key': settings.mongoDbApiKey,
       }
     });
-    console.log("Successfully synced to MongoDB");
   } catch (error) {
     console.error("Failed to sync to MongoDB:", error);
     toast.error("Failed to sync with MongoDB Atlas");
@@ -72,7 +70,6 @@ export const fetchFromMongoDb = async () => {
         tasks: doc.tasks,
         settings: doc.settings,
       });
-      console.log("Successfully fetched from MongoDB");
       toast.success("State synchronized from cloud!");
     }
   } catch (error) {
