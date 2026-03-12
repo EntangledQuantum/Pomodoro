@@ -1,4 +1,8 @@
-# React + TypeScript + Vite
+# Zen Focus - Pomodoro & Tasks
+
+<p align="center">
+  <img src="public/screenshot.png" width="400" />
+</p>
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 

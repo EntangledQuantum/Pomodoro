@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useAppStore } from './store';
 import { AnimatedBackground } from './components/AnimatedBackground';
 import { SetupWizard } from './components/setup/SetupWizard';
@@ -9,14 +9,8 @@ function App() {
   const { settings, timer, startTimer, pauseTimer, resetTimer } = useAppStore();
   
   // Minimal App State for Demo
-  const [showSetup, setShowSetup] = useState(false);
-
   // Show setup wizard if MongoDB is not configured on first load
-  useEffect(() => {
-    if (!settings.mongoDbUrl || !settings.mongoDbApiKey) {
-      setShowSetup(true);
-    }
-  }, [settings.mongoDbUrl, settings.mongoDbApiKey]);
+  const [showSetup, setShowSetup] = useState(() => !settings.mongoDbUrl || !settings.mongoDbApiKey);
 
   // Format time (e.g., 25:00)
   const formatTime = (seconds: number) => {
