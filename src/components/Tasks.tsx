@@ -8,6 +8,8 @@ export function Tasks() {
   const [newTaskTitle, setNewTaskTitle] = useState('');
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
 
+  const tasksList = Object.values(tasks);
+
   const handleAddTask = () => {
     if (newTaskTitle.trim()) {
       addTask({
@@ -71,11 +73,11 @@ export function Tasks() {
         </div>
       )}
 
-      {tasks.length === 0 && !isAdding ? (
+      {tasksList.length === 0 && !isAdding ? (
         <p className="text-white/50 text-sm text-center py-4">You have no tasks. Add one to get started!</p>
       ) : (
         <ul className="space-y-3">
-          {tasks.map((task) => {
+          {tasksList.map((task) => {
             const project = projects.find(p => p.id === task.projectId);
             return (
               <li

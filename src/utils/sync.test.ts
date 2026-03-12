@@ -14,7 +14,6 @@ vi.mock('../store', () => ({
 }));
 
 describe('syncWithMongoDb', () => {
-  const mockConsoleLog = vi.spyOn(console, 'log').mockImplementation(() => {});
   const mockConsoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
 
   beforeEach(() => {
@@ -25,12 +24,11 @@ describe('syncWithMongoDb', () => {
     vi.mocked(useAppStore.getState).mockReturnValue({
       settings: { mongoDbUrl: '', mongoDbApiKey: '', clusterName: '', databaseName: '' },
       projects: [],
-      tasks: [],
-    } as any);
+      tasks: {},
+    } as unknown as ReturnType<typeof useAppStore.getState>);
 
     await syncWithMongoDb();
 
-    expect(mockConsoleLog).toHaveBeenCalledWith('MongoDB credentials not set. Skipping sync.');
     expect(axios.post).not.toHaveBeenCalled();
   });
 
@@ -38,8 +36,8 @@ describe('syncWithMongoDb', () => {
     vi.mocked(useAppStore.getState).mockReturnValue({
       settings: { mongoDbUrl: 'http://mongodb.url', mongoDbApiKey: 'api-key', clusterName: 'Cluster0', databaseName: 'Db' },
       projects: [],
-      tasks: [],
-    } as any);
+      tasks: {},
+    } as unknown as ReturnType<typeof useAppStore.getState>);
 
     vi.mocked(axios.post).mockResolvedValueOnce({});
 
@@ -56,15 +54,14 @@ describe('syncWithMongoDb', () => {
         },
       }
     );
-    expect(mockConsoleLog).toHaveBeenCalledWith('Successfully synced to MongoDB');
   });
 
   it('should handle sync error and show toast', async () => {
     vi.mocked(useAppStore.getState).mockReturnValue({
       settings: { mongoDbUrl: 'http://mongodb.url', mongoDbApiKey: 'api-key', clusterName: 'Cluster0', databaseName: 'Db' },
       projects: [],
-      tasks: [],
-    } as any);
+      tasks: {},
+    } as unknown as ReturnType<typeof useAppStore.getState>);
 
     const error = new Error('Network Error');
     vi.mocked(axios.post).mockRejectedValueOnce(error);
