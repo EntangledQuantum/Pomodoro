@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { useAppStore } from '../store';
 import toast from 'react-hot-toast';
+import { DEFAULT_USER_ID } from '../constants';
 
 export const syncWithMongoDb = async () => {
   const { settings, projects, tasks } = useAppStore.getState();
@@ -14,10 +15,10 @@ export const syncWithMongoDb = async () => {
     dataSource: settings.clusterName,
     database: settings.databaseName,
     collection: "user_data",
-    filter: { userId: "default-user" }, // Single user app
+    filter: { userId: DEFAULT_USER_ID }, // Single user app
     update: {
       $set: {
-        userId: "default-user",
+        userId: DEFAULT_USER_ID,
         projects,
         tasks,
         settings,
@@ -52,7 +53,7 @@ export const fetchFromMongoDb = async () => {
     dataSource: settings.clusterName,
     database: settings.databaseName,
     collection: "user_data",
-    filter: { userId: "default-user" },
+    filter: { userId: DEFAULT_USER_ID },
   };
 
   try {
