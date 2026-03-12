@@ -42,7 +42,7 @@ export interface Settings {
 }
 
 export interface AppState {
-  projects: Project[];
+  projects: Record<string, Project>;
   tasks: Task[];
   timer: TimerState;
   settings: Settings;

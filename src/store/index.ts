@@ -24,7 +24,7 @@ const getDurationForMode = (mode: TimerMode, settings: typeof INITIAL_SETTINGS) 
 export const useAppStore = create<AppState>()(
   persist(
     (set) => ({
-      projects: [],
+      projects: {},
       tasks: [],
       timer: {
         mode: 'work',
@@ -35,16 +35,23 @@ export const useAppStore = create<AppState>()(
       settings: INITIAL_SETTINGS,
 
       // -- Projects --
-      addProject: (project) => set((state) => ({
-        projects: [...state.projects, { ...project, id: uuidv4(), createdAt: Date.now() }]
-      })),
+      addProject: (project) => set((state) => {
+        const id = uuidv4();
+        return {
+          projects: { ...state.projects, [id]: { ...project, id, createdAt: Date.now() } }
+        };
+      }),
       updateProject: (id, updates) => set((state) => ({
-        projects: state.projects.map(p => p.id === id ? { ...p, ...updates } : p)
+        projects: { ...state.projects, [id]: { ...state.projects[id], ...updates } }
       })),
-      deleteProject: (id) => set((state) => ({
-        projects: state.projects.filter(p => p.id !== id),
-        tasks: state.tasks.map(t => t.projectId === id ? { ...t, projectId: null } : t)
-      })),
+      deleteProject: (id) => set((state) => {
+        const newProjects = { ...state.projects };
+        delete newProjects[id];
+        return {
+          projects: newProjects,
+          tasks: state.tasks.map(t => t.projectId === id ? { ...t, projectId: null } : t)
+        };
+      }),
 
       // -- Tasks --
       addTask: (task) => set((state) => ({
