@@ -1,13 +1,28 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAppStore } from './store';
 import { AnimatedBackground } from './components/AnimatedBackground';
 import { SetupWizard } from './components/setup/SetupWizard';
+import { Projects } from './components/Projects';
+import { Tasks } from './components/Tasks';
 import { Settings, Play, Pause, Square } from 'lucide-react';
 import { Toaster } from 'react-hot-toast';
 
 function App() {
-  const { settings, timer, startTimer, pauseTimer, resetTimer } = useAppStore();
+  const { settings, timer, startTimer, pauseTimer, resetTimer, tickTimer } = useAppStore();
   
+  useEffect(() => {
+    let interval: ReturnType<typeof setInterval>;
+    if (timer.isRunning && timer.timeLeft > 0) {
+      interval = setInterval(() => {
+        tickTimer();
+      }, 1000);
+    } else if (timer.timeLeft === 0 && timer.isRunning) {
+      // Timer hit 0, handled internally by tickTimer, but we can also ensure it stops here.
+      pauseTimer();
+    }
+    return () => clearInterval(interval);
+  }, [timer.isRunning, timer.timeLeft, tickTimer, pauseTimer]);
+
   // Minimal App State for Demo
   // Show setup wizard if MongoDB is not configured on first load
   const [showSetup, setShowSetup] = useState(() => !settings.mongoDbUrl || !settings.mongoDbApiKey);
@@ -76,9 +91,10 @@ function App() {
           
         </div>
 
-        {/* Placeholder for Tasks UI */}
-        <div className="mt-8 text-white/50 text-sm animate-pulse">
-           Tasks & Projects Dashboard coming soon...
+        {/* Projects and Tasks UI */}
+        <div className="flex flex-col md:flex-row gap-6 w-full max-w-4xl justify-center">
+          <Projects />
+          <Tasks />
         </div>
 
       </div>
